@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Espace - Registre de Cours</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #1e40af;
+      --secondary: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--gray-800);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.8em;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 0.9em;
+    }
+
+    .content {
+      padding: 30px 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      border: 4px solid var(--gray-200);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fee;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    /* Onglets */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    .tab-btn {
+      padding: 15px 25px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      color: var(--gray-600);
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Formation Info */
+    .formation-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .info-card {
+      background: var(--gray-50);
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .info-card label {
+      display: block;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 8px;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-card .value {
+      font-size: 1em;
+      color: var(--gray-900);
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    /* Statistiques */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-mini {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-mini-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .stat-mini-label {
+      font-size: 0.85em;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-mini.secondary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .stat-mini.warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    /* Tableau */
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filters input,
+    .filters select {
+      padding: 10px 15px;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      font-size: 0.95em;
+      font-family: inherit;
+    }
+
+    .filters input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filters select {
+      min-width: 150px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--gray-200);
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    thead {
+      background: var(--gray-100);
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    th {
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray-800);
+      font-size: 0.9em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 0.95em;
+    }
+
+    tbody tr:hover {
+      background: var(--gray-50);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .status-completed {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--secondary);
+    }
+
+    .status-in-progress {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--primary);
+    }
+
+    .status-planned {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-600);
+    }
+
+    /* Detail Modal */
+    .detail-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .detail-modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .detail-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .detail-close {
+      float: right;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+
+    .detail-close:hover {
+      color: var(--gray-900);
+    }
+
+    .detail-field {
+      margin: 20px 0;
+    }
+
+    .detail-field label {
+      display: block;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 5px;
+      font-size: 0.85em;
+      text-transform: uppercase;
+    }
+
+    .detail-field .value {
+      font-size: 1em;
+      color: var(--gray-900);
+    }
+
+    /* Sections */
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .section-title .toggle-icon {
+      font-size: 1.5em;
+      transition: transform 0.3s ease;
+    }
+
+    .section-title.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .section-content.collapsed {
+      max-height: 0;
+      margin-bottom: -20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.4em;
+      }
+
+      .tabs {
+        gap: 0;
+      }
+
+      .tab-btn {
+        padding: 12px 15px;
+        font-size: 0.9em;
+      }
+
+      .formation-info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters input {
+        min-width: 100%;
+      }
+
+      th, td {
+        padding: 10px 8px;
+        font-size: 0.85em;
+      }
+
+      .detail-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header" style="display: none;">
+      <h1>📚 Mon Espace Formation</h1>
+      <p id="studentName">Chargement...</p>
+    </div>
+
+    <div class="content">
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
+
+      <div id="error" class="error" style="display: none;"></div>
+
+      <div id="mainContent" style="display: none;">
+        <!-- Onglets dynamiques -->
+        <div class="tabs" id="tabsContainer"></div>
+
+        <!-- Contenu dynamique des onglets -->
+        <div id="tabsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Détails -->
+  <div id="detailModal" class="detail-modal" onclick="app.closeDetail(event)">
+    <div class="detail-content" onclick="event.stopPropagation()">
+      <span class="detail-close" onclick="app.closeDetail()">×</span>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Réservation -->
+  <div id="bookingModal" class="detail-modal" onclick="app.closeBooking(event)">
+    <div class="detail-content" style="max-width: 95vw; max-height: 95vh; width: 95vw; height: 95vh; padding: 0; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--gray-200);">
+        <h2 style="margin: 0;">Réserver une session privée</h2>
+        <span class="detail-close" onclick="app.closeBooking()" style="float: none;">×</span>
+      </div>
+      <iframe id="bookingIframe" src="https://espagnolalamaison.com/reservacion-alejandra" style="flex: 1; width: 100%; border: none;"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const app = {
+      apiUrl: 'https://script.google.com/macros/s/AKfycbxWIaSpmgjMyYvQPnzppp4iDMrqJTwLvbz8vIPt5OeW28kcppyMKCHt7fbBxg6tBFIa/exec',
+      allData: null,
+      studentId: null,
+      formations: [],
+      currentFormationIdx: 0,
+      filterTimeouts: {},
+
+      async init() {
+        // Récupérer l'ID étudiant de l'URL
+        const params = new URLSearchParams(window.location.search);
+        this.studentId = params.get('etudiant');
+
+        if (!this.studentId) {
+          this.showError('Code étudiant manquant dans l\'URL (ex: ?etudiant=A00001)');
+          return;
+        }
+
+        await this.loadData();
+      },
+
+      async loadData() {
+        try {
+          document.getElementById('loading').style.display = 'block';
+          document.getElementById('error').style.display = 'none';
+
+          const response = await fetch(this.apiUrl, { mode: 'cors' });
+          if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+
+          this.allData = data;
+          this.buildStudentView();
+          this.render();
+        } catch (error) {
+          this.showError(`Erreur: ${error.message}`);
+        } finally {
+          document.getElementById('loading').style.display = 'none';
+        }
+      },
+
+      buildStudentView() {
+        const student = this.allData.apprenants.find(a => a.ID_Apprenant === this.studentId);
+        if (!student) {
+          throw new Error(`Apprenant ${this.studentId} non trouvé`);
+        }
+
+        document.getElementById('studentName').textContent = `Bonjour, ${student.Prénom} ${student.Nom}`;
+
+        // Trouver TOUTES les inscriptions de cet étudiant
+        const inscriptions = this.allData.inscriptions.filter(i => i.ID_Apprenant === this.studentId);
+        if (inscriptions.length === 0) {
+          throw new Error(`Aucune formation trouvée pour cet apprenant`);
+        }
+
+        // Pour chaque inscription, charger les données
+        this.formations = inscriptions.map(inscription => {
+          const formation = this.allData.formations.find(f => f.ID_Formation === inscription.ID_Formation);
+          if (!formation) return null;
+
+          const formationsSessions = this.allData.formationsSessions.filter(
+            fs => fs.ID_Formation === inscription.ID_Formation
+          );
+          const sessions = this.allData.sessions.filter(s =>
+            formationsSessions.map(fs => fs.ID_Session).includes(s.ID_Session)
+          );
+
+          return {
+            formation: formation,
+            sessions: sessions,
+            filteredSessions: [...sessions],
+            sortColumn: 'Date',
+            sortDir: 'asc',
+            filterText: '',
+            filterStatus: ''
+          };
+        }).filter(f => f !== null);
+
+        if (this.formations.length === 0) {
+          throw new Error(`Aucune formation valide trouvée`);
+        }
+      },
+
+      render() {
+        document.getElementById('mainContent').style.display = 'block';
+        this.renderTabs();
+        this.renderTabContent(0);
+        this.updateBookingButton();
+      },
+
+      renderTabs() {
+        let html = '';
+        this.formations.forEach((f, idx) => {
+          const active = idx === this.currentFormationIdx ? 'active' : '';
+          html += `
+            <button class="tab-btn ${active}" onclick="app.switchTab(${idx})">
+              📚 ${this.escapeHtml(f.formation.Intitulé)}
+            </button>
+          `;
+        });
+        document.getElementById('tabsContainer').innerHTML = html;
+      },
+
+      renderTabContent(idx) {
+        this.currentFormationIdx = idx;
+        const data = this.formations[idx];
+
+        let html = `<div id="tab-${idx}" class="tab-content active">`;
+
+        // Briques de formation
+        html += `<div class="section">
+          <h2 class="section-title collapsed" onclick="app.toggleSection('formation-${idx}')">
+            <span>📋 Détails de la formation</span>
+            <span class="toggle-icon">▼</span>
+          </h2>
+          <div id="formation-${idx}" class="section-content collapsed">
+            <div class="formation-info-grid">
+          <div class="info-card">
+            <label>📌 Intitulé</label>
+            <div class="value">${this.escapeHtml(data.formation.Intitulé)}</div>
+          </div>
+          <div class="info-card">
+            <label>📅 Période</label>
+            <div class="value">${this.escapeHtml(data.formation['Période début'])} au ${this.escapeHtml(data.formation['Période fin'])}</div>
+          </div>
+          <div class="info-card">
+            <label>📍 Lieu</label>
+            <div class="value">${this.escapeHtml(data.formation.Lieu)}</div>
+          </div>
+          <div class="info-card">
+            <label>👨‍🏫 Formateur</label>
+            <div class="value">${this.escapeHtml(data.formation.Formateur)}</div>
+          </div>
+          <div class="info-card">
+            <label>⏱️ Durée totale</label>
+            <div class="value">${this.escapeHtml(data.formation['Durée totale'])}</div>
+          </div>
+          <div class="info-card">
+            <label>🎓 Cours privé</label>
+            <div class="value">${this.escapeHtml(data.formation['Durée privé'])}</div>
+          </div>
+          <div class="info-card">
+            <label>👥 Cours collectif</label>
+            <div class="value">${this.escapeHtml(data.formation['Durée collectif'])}</div>
+          </div>
+          </div>
+          </div>
+        </div>`;
+
+        // Stats et sessions
+        html += `<div class="section">
+          <h2 class="section-title">📊 Mes sessions</h2>
+          <div style="margin-bottom: 20px;">
+            <button id="bookingBtn" class="btn" style="width: 100%; padding: 12px;" onclick="app.openBooking()">
+              📅 Réserver une session privée
+            </button>
+          </div>
+          <div id="stats-${idx}"></div>
+          <div id="sessions-${idx}"></div>
+        </div>`;
+        html += `</div>`;
+
+        document.getElementById('tabsContent').innerHTML = html;
+
+        this.renderStats(idx);
+        this.renderSessions(idx);
+      },
+
+      renderStats(idx) {
+        const data = this.formations[idx];
+        const stats = this.calculateStats(data.sessions);
+
+        // Tableau récapitulatif
+        const summary = this.calculateSummary(data.sessions, data.formation);
+
+        let tableHtml = `
+          <div style="overflow-x: auto; margin: 30px 0;">
+            <table style="width: 100%; border-collapse: collapse; text-align: center;">
+              <thead style="background: var(--gray-100);">
+                <tr>
+                  <th style="padding: 12px; border-bottom: 2px solid var(--gray-200);">Type</th>
+                  <th style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--secondary);">Heures effectuées</th>
+                  <th style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--danger);">Heures absentes</th>
+                  <th style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--primary);">Heures restantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: white;">
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); font-weight: 600;">Cours privés</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--secondary); font-weight: 600;">${summary.privateCompleted}h</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--danger); font-weight: 600;">${summary.privateAbsent}h</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--primary); font-weight: 600;">${summary.privateRemaining}h</td>
+                </tr>
+                <tr style="background: var(--gray-50);">
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); font-weight: 600;">Cours collectifs</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--secondary); font-weight: 600;">${summary.collectiveCompleted}h</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--danger); font-weight: 600;">${summary.collectiveAbsent}h</td>
+                  <td style="padding: 12px; border-bottom: 1px solid var(--gray-200); color: var(--primary); font-weight: 600;">${summary.collectiveRemaining}h</td>
+                </tr>
+                <tr style="background: white;">
+                  <td style="padding: 12px; border-bottom: 2px solid var(--gray-200); font-weight: 600;">Total</td>
+                  <td style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--secondary); font-weight: 600;">${summary.totalCompleted}h</td>
+                  <td style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--danger); font-weight: 600;">${summary.totalAbsent}h</td>
+                  <td style="padding: 12px; border-bottom: 2px solid var(--gray-200); color: var(--primary); font-weight: 600;">${summary.totalRemaining}h</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        document.getElementById(`stats-${idx}`).innerHTML = tableHtml;
+      },
+
+      calculateSummary(sessions, formation) {
+        const summary = {
+          privateCompleted: 0,
+          privateAbsent: 0,
+          collectiveCompleted: 0,
+          collectiveAbsent: 0
+        };
+
+        sessions.forEach(s => {
+          const hours = this.parseHours(s.Durée);
+          const isPrivate = s['Type de cours'].toLowerCase().includes('privé');
+          const statut = s.Statut.toLowerCase();
+
+          if (isPrivate) {
+            if (statut === 'complétée') {
+              summary.privateCompleted += hours;
+            } else if (statut === 'absent') {
+              summary.privateAbsent += hours;
+            }
+          } else {
+            if (statut === 'complétée') {
+              summary.collectiveCompleted += hours;
+            } else if (statut === 'absent') {
+              summary.collectiveAbsent += hours;
+            }
+          }
+        });
+
+        // Calculer les heures restantes basé sur la durée de la formation
+        const privateDuration = this.parseHours(formation['Durée privé']);
+        const collectiveDuration = this.parseHours(formation['Durée collectif']);
+
+        const privateRemaining = privateDuration - summary.privateCompleted - summary.privateAbsent;
+        const collectiveRemaining = collectiveDuration - summary.collectiveCompleted - summary.collectiveAbsent;
+        const totalCompleted = summary.privateCompleted + summary.collectiveCompleted;
+        const totalAbsent = summary.privateAbsent + summary.collectiveAbsent;
+        const totalRemaining = privateRemaining + collectiveRemaining;
+
+        return {
+          privateCompleted: summary.privateCompleted.toFixed(1),
+          privateAbsent: summary.privateAbsent.toFixed(1),
+          privatePlanned: '—',
+          privateRemaining: privateRemaining.toFixed(1),
+          collectiveCompleted: summary.collectiveCompleted.toFixed(1),
+          collectiveAbsent: summary.collectiveAbsent.toFixed(1),
+          collectivePlanned: '—',
+          collectiveRemaining: collectiveRemaining.toFixed(1),
+          totalCompleted: totalCompleted.toFixed(1),
+          totalAbsent: totalAbsent.toFixed(1),
+          totalRemaining: totalRemaining.toFixed(1),
+          totalPlanned: '—'
+        };
+      },
+
+      renderSessions(idx) {
+        const data = this.formations[idx];
+        const hasData = data.filteredSessions.length > 0;
+        const scrollPos = window.scrollY;
+
+        let html = `
+          <div class="filters">
+            <input
+              type="text"
+              id="searchInput-${idx}"
+              placeholder="Rechercher par date, thème..."
+              value="${this.escapeHtml(data.filterText)}"
+              onkeyup="app.filterSessions(${idx})"
+            >
+            <select id="statusFilter-${idx}" onchange="app.filterSessions(${idx})">
+              <option value="">Tous les statuts</option>
+              <option value="Complétée" ${data.filterStatus === 'Complétée' ? 'selected' : ''}>Complétée</option>
+              <option value="En cours" ${data.filterStatus === 'En cours' ? 'selected' : ''}>En cours</option>
+              <option value="Planifiée" ${data.filterStatus === 'Planifiée' ? 'selected' : ''}>Planifiée</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th onclick="app.sortSessions(${idx}, 'Date')" style="cursor: pointer;">Date ${this.getSortIcon(data, 'Date')}</th>
+                  <th onclick="app.sortSessions(${idx}, 'Horaires')" style="cursor: pointer;">Horaires ${this.getSortIcon(data, 'Horaires')}</th>
+                  <th onclick="app.sortSessions(${idx}, 'Durée')" style="cursor: pointer;">Durée ${this.getSortIcon(data, 'Durée')}</th>
+                  <th onclick="app.sortSessions(${idx}, 'Type')" style="cursor: pointer;">Type ${this.getSortIcon(data, 'Type')}</th>
+                  <th onclick="app.sortSessions(${idx}, 'Statut')" style="cursor: pointer;">Statut ${this.getSortIcon(data, 'Statut')}</th>
+                  <th onclick="app.sortSessions(${idx}, 'Thème')" style="cursor: pointer;">Thème ${this.getSortIcon(data, 'Thème')}</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTable-${idx}">`;
+
+        data.filteredSessions.forEach((session) => {
+          const statusClass = this.getStatusClass(session.Statut);
+          html += `
+            <tr>
+              <td>${this.formatDate(session.Date)}</td>
+              <td>${this.escapeHtml(session['Horaire début'])} - ${this.escapeHtml(session['Horaire fin'])}</td>
+              <td>${this.escapeHtml(session.Durée)}</td>
+              <td>${this.escapeHtml(session['Type de cours'])}</td>
+              <td><span class="status-badge ${statusClass}">${this.escapeHtml(session.Statut)}</span></td>
+              <td>${this.escapeHtml(session.Thème)}</td>
+              <td><button class="btn" onclick="app.showDetail(${idx}, ${data.sessions.indexOf(session)})">+</button></td>
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+          ${hasData ? '' : '<div class="no-data">Aucune session trouvée.</div>'}
+        `;
+
+        document.getElementById(`sessions-${idx}`).innerHTML = html;
+        window.scrollTo(0, scrollPos);
+      },
+
+      getSortIcon(data, col) {
+        if (data.sortColumn !== col) return '';
+        return data.sortDir === 'asc' ? '▲' : '▼';
+      },
+
+      sortSessions(idx, column) {
+        const data = this.formations[idx];
+        if (data.sortColumn === column) {
+          data.sortDir = data.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          data.sortColumn = column;
+          data.sortDir = 'asc';
+        }
+
+        const col = column === 'Horaires' ? 'Horaire début' : column === 'Type' ? 'Type de cours' : column;
+        data.filteredSessions.sort((a, b) => {
+          let valA = a[col];
+          let valB = b[col];
+
+          if (col === 'Durée') {
+            valA = this.parseHours(valA);
+            valB = this.parseHours(valB);
+          }
+
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+            return data.sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          } else {
+            return data.sortDir === 'asc' ? valA - valB : valB - valA;
+          }
+        });
+
+        this.renderSessions(idx);
+      },
+
+      calculateStats(sessions) {
+        let totalHours = 0, completedHours = 0, completed = 0, planned = 0;
+        const typeHours = {};
+
+        sessions.forEach(s => {
+          const hours = this.parseHours(s.Durée);
+          totalHours += hours;
+
+          const type = s['Type de cours'];
+          if (!typeHours[type]) typeHours[type] = { total: 0, remaining: 0 };
+          typeHours[type].total += hours;
+
+          if (s.Statut === 'Complétée') {
+            completedHours += hours;
+            completed++;
+          } else {
+            typeHours[type].remaining += hours;
+            planned++;
+          }
+        });
+
+        const remainingHours = totalHours - completedHours;
+
+        return {
+          totalHours: totalHours.toFixed(1),
+          completedHours: completedHours.toFixed(1),
+          remainingHours: remainingHours.toFixed(1),
+          completed,
+          planned,
+          completionRate: sessions.length > 0 ? Math.round((completed / sessions.length) * 100) : 0,
+          typeHours: typeHours
+        };
+      },
+
+      filterSessions(idx) {
+        const data = this.formations[idx];
+        const searchTerm = document.getElementById(`searchInput-${idx}`).value.toLowerCase();
+        const statusFilter = document.getElementById(`statusFilter-${idx}`).value;
+
+        data.filterText = searchTerm;
+        data.filterStatus = statusFilter;
+
+        // Debounce le filtrage
+        clearTimeout(this.filterTimeouts[idx]);
+        this.filterTimeouts[idx] = setTimeout(() => {
+          data.filteredSessions = data.sessions.filter(s => {
+            const matchSearch =
+              s.Date.toLowerCase().includes(searchTerm) ||
+              s['Horaire début'].toLowerCase().includes(searchTerm) ||
+              s['Horaire fin'].toLowerCase().includes(searchTerm) ||
+              s.Durée.toLowerCase().includes(searchTerm) ||
+              s['Type de cours'].toLowerCase().includes(searchTerm) ||
+              s.Statut.toLowerCase().includes(searchTerm) ||
+              s.Thème.toLowerCase().includes(searchTerm);
+            const matchStatus = !statusFilter || s.Statut === statusFilter;
+            return matchSearch && matchStatus;
+          });
+
+          this.renderSessions(idx);
+        }, 300);
+      },
+
+      showDetail(formationIdx, sessionIdx) {
+        const session = this.formations[formationIdx].sessions[sessionIdx];
+        let html = `
+          <h2>Session ${this.escapeHtml(session['ID_Session'])}</h2>
+
+          <div class="detail-field">
+            <label>Date</label>
+            <div class="value">${this.formatDate(session.Date)}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Horaires</label>
+            <div class="value">${this.escapeHtml(session['Horaire début'])} - ${this.escapeHtml(session['Horaire fin'])}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Durée</label>
+            <div class="value">${this.escapeHtml(session.Durée)}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Type</label>
+            <div class="value">${this.escapeHtml(session['Type de cours'])}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Thème</label>
+            <div class="value">${this.escapeHtml(session.Thème)}</div>
+          </div>
+
+          <div class="detail-field">
+            <label>Statut</label>
+            <div class="value"><span class="status-badge ${this.getStatusClass(session.Statut)}">${this.escapeHtml(session.Statut)}</span></div>
+          </div>
+
+          <div class="detail-field">
+            <label>Tâches / Devoirs</label>
+            <div class="value">${this.escapeHtml(session['Tâches/Devoirs']) || 'Aucune'}</div>
+          </div>
+        `;
+
+        document.getElementById('detailBody').innerHTML = html;
+        document.getElementById('detailModal').classList.add('active');
+      },
+
+      closeDetail(event) {
+        if (!event || event.target.id === 'detailModal') {
+          document.getElementById('detailModal').classList.remove('active');
+        }
+      },
+
+      openBooking() {
+        const summary = this.calculateSummary(this.formations[this.currentFormationIdx].sessions, this.formations[this.currentFormationIdx].formation);
+        if (parseFloat(summary.privateRemaining) > 0) {
+          document.getElementById('bookingModal').classList.add('active');
+        }
+      },
+
+      closeBooking(event) {
+        if (!event || event.target.id === 'bookingModal') {
+          document.getElementById('bookingModal').classList.remove('active');
+        }
+      },
+
+      updateBookingButton() {
+        const idx = this.currentFormationIdx;
+        if (idx < this.formations.length) {
+          const summary = this.calculateSummary(this.formations[idx].sessions, this.formations[idx].formation);
+          const btn = document.getElementById('bookingBtn');
+          if (btn) {
+            if (parseFloat(summary.privateRemaining) > 0) {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+            } else {
+              btn.disabled = true;
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+            }
+          }
+        }
+      },
+
+      switchTab(idx) {
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+        this.renderTabContent(idx);
+        this.updateBookingButton();
+      },
+
+      toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const title = section.previousElementSibling;
+        section.classList.toggle('collapsed');
+        title.classList.toggle('collapsed');
+      },
+
+      showError(msg) {
+        const errorEl = document.getElementById('error');
+        errorEl.textContent = '❌ ' + msg;
+        errorEl.style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+      },
+
+      parseHours(duration) {
+        if (!duration) return 0;
+        let hours = 0;
+
+        // Extraire les heures (ex: "1h30" ou "1h")
+        const hourMatch = duration.match(/(\d+)\s*h/i);
+        if (hourMatch) {
+          hours += parseInt(hourMatch[1]);
+        }
+
+        // Extraire les minutes (ex: "30" dans "1h30")
+        const minMatch = duration.match(/h\s*(\d+)/i);
+        if (minMatch) {
+          hours += parseInt(minMatch[1]) / 60;
+        }
+
+        return hours;
+      },
+
+      getStatusClass(status) {
+        const map = {
+          'Complétée': 'status-completed',
+          'En cours': 'status-in-progress',
+          'Planifiée': 'status-planned'
+        };
+        return map[status] || 'status-planned';
+      },
+
+      formatDate(date) {
+        if (typeof date === 'string') return date;
+        const d = new Date(date);
+        return d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
+      },
+
+      escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
