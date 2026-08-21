@@ -800,7 +800,6 @@
                   <th onclick="app.sortSessions(${idx}, 'Durée')" style="cursor: pointer;">Durée ${this.getSortIcon(data, 'Durée')}</th>
                   <th onclick="app.sortSessions(${idx}, 'Type')" style="cursor: pointer;">Type ${this.getSortIcon(data, 'Type')}</th>
                   <th onclick="app.sortSessions(${idx}, 'Statut')" style="cursor: pointer;">Statut ${this.getSortIcon(data, 'Statut')}</th>
-                  <th onclick="app.sortSessions(${idx}, 'Thème')" style="cursor: pointer;">Thème ${this.getSortIcon(data, 'Thème')}</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -815,7 +814,6 @@
               <td>${this.escapeHtml(session.Durée)}</td>
               <td>${this.escapeHtml(session['Type de cours'])}</td>
               <td><span class="status-badge ${statusClass}">${this.escapeHtml(session.Statut)}</span></td>
-              <td>${this.escapeHtml(session.Thème)}</td>
               <td><button class="btn" onclick="app.showDetail(${idx}, ${data.sessions.indexOf(session)})">+</button></td>
             </tr>
           `;
